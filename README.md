@@ -1,2 +1,2 @@
 # SmartGlove-Maintenance
-Update untuk menutup issue #1
+Update untuk menutup issue #2
