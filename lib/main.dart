@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:smartglove/firebase_options.dart';
 import 'dashboard.dart';
 import 'translate_screen.dart';
 import 'library_screen.dart';
 import 'settings_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
+void main() async {
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+);
   runApp(const SmartGloveApp());
 }
 
@@ -38,7 +43,6 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Pindah ke MainWrapper setelah 3 detik
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
         Navigator.pushReplacement(
@@ -65,7 +69,6 @@ class _SplashScreenState extends State<SplashScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Logo
               Container(
                 width: 120,
                 height: 120,
@@ -77,7 +80,6 @@ class _SplashScreenState extends State<SplashScreen> {
                 child: const Icon(Icons.front_hand, size: 60, color: Colors.white),
               ),
               const SizedBox(height: 32),
-              // Judul
               const Text(
                 'Smart Glove',
                 textAlign: TextAlign.center,
@@ -100,7 +102,6 @@ class _SplashScreenState extends State<SplashScreen> {
                 ),
               ),
               const SizedBox(height: 48),
-              // Loading Indicator
               const CircularProgressIndicator(
                 strokeWidth: 2,
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
@@ -122,6 +123,9 @@ class _SplashScreenState extends State<SplashScreen> {
 class MainWrapper extends StatefulWidget {
   const MainWrapper({super.key});
 
+  // GlobalKey untuk mengakses state dari luar
+  static final GlobalKey<_MainWrapperState> navigatorKey = GlobalKey<_MainWrapperState>();
+
   @override
   State<MainWrapper> createState() => _MainWrapperState();
 }
@@ -136,9 +140,17 @@ class _MainWrapperState extends State<MainWrapper> {
     const DeviceConnectivityScreen(),
   ];
 
+  // Method untuk mengubah index dari luar
+  void changeIndex(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: MainWrapper.navigatorKey,
       body: _screens[_currentIndex],
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(

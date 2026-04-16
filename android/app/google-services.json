@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "655953987672",
+    "project_id": "smartglove-6ba79",
+    "storage_bucket": "smartglove-6ba79.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:655953987672:android:49fffda70da02f9020222d",
+        "android_client_info": {
+          "package_name": "com.example.smartglove"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDO3lbKDDMVuP3kiNe67A1A9QiiVT9T8B0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
