@@ -4,12 +4,40 @@ import 'dashboard.dart';
 import 'translate_screen.dart';
 import 'library_screen.dart';
 import 'settings_screen.dart';
+import 'splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-);
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Handle Firebase initialization based on platform
+  try {
+    // Check if running on web
+    if (const bool.fromEnvironment('dart.library.html')) {
+      // For web, Firebase might need different initialization
+      await Firebase.initializeApp(
+        options: const FirebaseOptions(
+          apiKey: "YOUR_API_KEY",
+          authDomain: "YOUR_AUTH_DOMAIN",
+          projectId: "YOUR_PROJECT_ID",
+          storageBucket: "YOUR_STORAGE_BUCKET",
+          messagingSenderId: "YOUR_SENDER_ID",
+          appId: "YOUR_APP_ID",
+        ),
+      );
+      print('Firebase initialized successfully for web');
+    } else {
+      // For mobile platforms
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      print('Firebase initialized successfully');
+    }
+  } catch (e) {
+    print('Error initializing Firebase: $e');
+    // Continue running app even if Firebase fails (for development)
+  }
+  
   runApp(const SmartGloveApp());
 }
 
@@ -32,98 +60,10 @@ class SmartGloveApp extends StatelessWidget {
   }
 }
 
-class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
-
-  @override
-  State<SplashScreen> createState() => _SplashScreenState();
-}
-
-class _SplashScreenState extends State<SplashScreen> {
-  @override
-  void initState() {
-    super.initState();
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MainWrapper()),
-        );
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        width: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF004D64), Color(0xFF006684)],
-          ),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(32),
-                  border: Border.all(color: Colors.white.withOpacity(0.1)),
-                ),
-                child: const Icon(Icons.front_hand, size: 60, color: Colors.white),
-              ),
-              const SizedBox(height: 32),
-              const Text(
-                'Smart Glove',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 40,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white,
-                  letterSpacing: -1,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'SIGN LANGUAGE TRANSLATOR',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Color(0xCCA2E1FF),
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 2,
-                ),
-              ),
-              const SizedBox(height: 48),
-              const CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Loading...',
-                style: TextStyle(color: Colors.white70, fontSize: 12),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 // ==================== MAIN WRAPPER WITH BOTTOM NAVIGATION ====================
 class MainWrapper extends StatefulWidget {
   const MainWrapper({super.key});
 
-  // GlobalKey untuk mengakses state dari luar
   static final GlobalKey<_MainWrapperState> navigatorKey = GlobalKey<_MainWrapperState>();
 
   @override
@@ -140,7 +80,6 @@ class _MainWrapperState extends State<MainWrapper> {
     const DeviceConnectivityScreen(),
   ];
 
-  // Method untuk mengubah index dari luar
   void changeIndex(int index) {
     setState(() {
       _currentIndex = index;

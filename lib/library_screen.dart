@@ -262,7 +262,7 @@ class HeaderSection extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           const Text(
-            'Bluetooth Connected • 85%',
+            'Bluetooth Terhubung • 85%',
             style: AppTextStyles.lexendW600_14,
           ),
         ],
@@ -281,7 +281,7 @@ class GestureLibraryBody extends StatefulWidget {
 
 class _GestureLibraryBodyState extends State<GestureLibraryBody> {
   int _selectedFilter = 0;
-  final List<String> _filters = ['All', 'Alphabet', 'Numbers', 'Phrases'];
+  final List<String> _filters = ['Semua', 'Huruf', 'Angka', 'Frasa'];
 
   @override
   Widget build(BuildContext context) {
@@ -305,7 +305,7 @@ class _GestureLibraryBodyState extends State<GestureLibraryBody> {
                 Icon(Icons.search, color: Color(0xFF6B7280), size: 20),
                 SizedBox(width: 12),
                 Text(
-                  "Search gestures (e.g. 'Hello', 'Water')",
+                  "Cari gerakan (misal 'Halo', 'Air')",
                   style: TextStyle(
                     color: Color(0xFF6B7280),
                     fontSize: 16,
@@ -357,7 +357,7 @@ class _GestureLibraryBodyState extends State<GestureLibraryBody> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: const [
               Text(
-                'Library Catalog',
+                'Katalog Perpustakaan',
                 style: TextStyle(
                   color: AppColors.textDark,
                   fontSize: 24,
@@ -367,7 +367,7 @@ class _GestureLibraryBodyState extends State<GestureLibraryBody> {
                 ),
               ),
               Text(
-                '128 Gestures',
+                '128 Gerakan',
                 style: TextStyle(
                   color: AppColors.textMuted,
                   fontSize: 14,
@@ -382,21 +382,21 @@ class _GestureLibraryBodyState extends State<GestureLibraryBody> {
           // Gesture Cards List
           _buildGestureCard(
             icon: Icons.front_hand_outlined,
-            tag: 'PHRASE',
+            tag: 'FRASA',
             tagBg: AppColors.chipBg,
             tagColor: AppColors.textDark,
-            title: 'Hello / Greetings',
+            title: 'Halo / Salam',
             description:
-                'A standard flat palm wave performed at\nshoulder height.',
+                'Lambaian telapak tangan datar standar yang\ndilakukan setinggi bahu.',
           ),
           _buildGestureCard(
             icon: Icons.water_drop_outlined,
-            tag: 'NEED',
+            tag: 'KEBUTUHAN',
             tagBg: AppColors.chipBg,
             tagColor: AppColors.textDark,
-            title: 'Water',
+            title: 'Air',
             description:
-                'Three fingers extended, index finger tapping\nthe chin.',
+                'Tiga jari terentang, jari telunjuk\nmengetuk dagu.',
           ),
 
           // Most Used This Week Card
@@ -404,20 +404,20 @@ class _GestureLibraryBodyState extends State<GestureLibraryBody> {
 
           _buildGestureCard(
             icon: Icons.add_circle_outline,
-            tag: 'URGENT',
+            tag: 'DARURAT',
             tagBg: const Color(0xFFFFDAD6),
             tagColor: const Color(0xFF93000A),
-            title: 'Help',
-            description: 'Closed fist on a flat palm, moved upward\ntwice.',
+            title: 'Tolong',
+            description: 'Kepalan tangan di atas telapak tangan datar, digerakkan ke atas\ndua kali.',
           ),
           _buildGestureCard(
             icon: Icons.restaurant_outlined,
-            tag: 'BASIC',
+            tag: 'DASAR',
             tagBg: AppColors.chipBg,
             tagColor: AppColors.textDark,
-            title: 'Eat / Food',
+            title: 'Makan / Makanan',
             description:
-                'Closed hand bringing fingertips toward the\nmouth.',
+                'Tangan terkepal membawa ujung jari ke\nmulut.',
           ),
 
           const SizedBox(height: 40),
@@ -540,7 +540,7 @@ class MostUsedCard extends StatelessWidget {
               ),
               const SizedBox(width: 16),
               const Text(
-                'MOST USED THIS WEEK',
+                'PALING SERING DIGUNAKAN MINGGU INI',
                 style: TextStyle(
                   color: Color(0xFF002020),
                   fontSize: 12,
@@ -553,7 +553,7 @@ class MostUsedCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           const Text(
-            '"Thank You"',
+            '"Terima Kasih"',
             style: TextStyle(
               color: Color(0xFF002020),
               fontSize: 30,
@@ -564,7 +564,7 @@ class MostUsedCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           const Text(
-            'Flat hand moves from chin outward\ntowards the listener. Synced across 4\ndevices.',
+            'Tangan datar bergerak dari dagu keluar\nmenuju pendengar. Tersinkronisasi di 4\nperangkat.',
             style: TextStyle(
               color: AppColors.deepTeal,
               fontSize: 16,
@@ -601,7 +601,7 @@ class RecentHistoryCard extends StatelessWidget {
               Icon(Icons.history, color: AppColors.textDark, size: 20),
               SizedBox(width: 8),
               Text(
-                'Recent History',
+                'Riwayat Terbaru',
                 style: TextStyle(
                   color: AppColors.textDark,
                   fontSize: 20,
@@ -617,20 +617,20 @@ class RecentHistoryCard extends StatelessWidget {
           // History Items
           _buildHistoryItem(
             icon: Icons.abc,
-            title: 'Alphabet "A"',
-            subtitle: 'Used 2 mins ago',
+            title: 'Huruf "A"',
+            subtitle: 'Digunakan 2 menit lalu',
           ),
           const SizedBox(height: 16),
           _buildHistoryItem(
             icon: Icons.chat_bubble_outline,
-            title: '"Where is the..."',
-            subtitle: 'Used 15 mins ago',
+            title: '"Di mana..."',
+            subtitle: 'Digunakan 15 menit lalu',
           ),
           const SizedBox(height: 16),
           _buildHistoryItem(
             icon: Icons.people_outline,
-            title: 'Mother',
-            subtitle: 'Used 1 hour ago',
+            title: 'Ibu',
+            subtitle: 'Digunakan 1 jam lalu',
           ),
           const SizedBox(height: 32),
 
@@ -652,7 +652,7 @@ class RecentHistoryCard extends StatelessWidget {
                         color: AppColors.primary, size: 18),
                     SizedBox(width: 8),
                     Text(
-                      'Quick Tip',
+                      'Tips Cepat',
                       style: TextStyle(
                         color: AppColors.primary,
                         fontSize: 16,
@@ -664,7 +664,7 @@ class RecentHistoryCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'For better accuracy during\ntranslation, keep your movements\nfirm and pause for 0.5s between\ngestures.',
+                  'Untuk akurasi yang lebih baik saat\npenerjemahan, pertahankan gerakan Anda\ntegas dan jeda 0,5 detik di antara\ngerakan.',
                   style: TextStyle(
                     color: AppColors.textGray,
                     fontSize: 14,
@@ -693,7 +693,7 @@ class RecentHistoryCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: const [
                     Text(
-                      'STORAGE STATUS',
+                      'STATUS PENYIMPANAN',
                       style: TextStyle(
                         color: AppColors.textMuted,
                         fontSize: 10,
@@ -703,7 +703,7 @@ class RecentHistoryCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '82% FULL',
+                      '82% TERISI',
                       style: TextStyle(
                         color: AppColors.textMuted,
                         fontSize: 10,
@@ -737,7 +737,7 @@ class RecentHistoryCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 const Center(
                   child: Text(
-                    'Last synced with MySQL: Today, 10:42 AM',
+                    'Sinkronisasi terakhir dengan MySQL: Hari ini, 10:42',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: AppColors.textGray,
