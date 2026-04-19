@@ -471,7 +471,6 @@ class _ActionButtons extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        // PERUBAHAN: Tombol Kalibrasi Sensor sekarang mengarah ke SensorCalibrationPage
         GestureDetector(
           onTap: () => _navigateToCalibration(context),
           child: Container(
