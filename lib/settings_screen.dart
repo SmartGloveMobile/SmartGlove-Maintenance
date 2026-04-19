@@ -275,7 +275,7 @@ class HeaderSection extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           const Text(
-            'Bluetooth Connected • 85%',
+            'Bluetooth Terhubung • 85%',
             style: AppTextStyles.lexendW600_14,
           ),
         ],
@@ -294,7 +294,7 @@ class TitleSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: const [
         Text(
-          'Connectivity',
+          'Konektivitas',
           style: TextStyle(
             color: AppColors.primary,
             fontSize: 36,
@@ -306,7 +306,7 @@ class TitleSection extends StatelessWidget {
         ),
         SizedBox(height: 8),
         Text(
-          'Seamlessly bridge your physical gestures\nwith your digital world.',
+          'Hubungkan gerakan fisik Anda dengan\ndunia digital Anda secara mulus.',
           style: TextStyle(
             color: AppColors.textGray,
             fontSize: 16,
@@ -337,7 +337,7 @@ class PairingStatusCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'CURRENT STATUS',
+            'STATUS SAAT INI',
             style: TextStyle(
               color: AppColors.deepTeal,
               fontSize: 10,
@@ -356,7 +356,7 @@ class PairingStatusCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
                   Text(
-                    'Pairing',
+                    'Memasangkan',
                     style: TextStyle(
                       color: Color(0xFF002020),
                       fontSize: 30,
@@ -414,7 +414,7 @@ class PairingStatusCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           const Text(
-            'Attempting secure handshake...',
+            'Mencoba jabat tangan aman...',
             style: TextStyle(
               color: AppColors.deepTeal,
               fontSize: 12,
@@ -456,7 +456,7 @@ class AvailableDevicesCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'Available Devices',
+                'Perangkat Tersedia',
                 style: TextStyle(
                   color: AppColors.textDark,
                   fontSize: 18,
@@ -505,7 +505,7 @@ class AvailableDevicesCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        'Nearby • High Signal',
+                        'Di Sekitar • Sinyal Kuat',
                         style: TextStyle(
                           color: AppColors.textGray,
                           fontSize: 12,
@@ -556,7 +556,7 @@ class AvailableDevicesCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'Standard Device',
+                          'Perangkat Standar',
                           style: TextStyle(
                             color: AppColors.textGray,
                             fontSize: 12,
@@ -606,7 +606,7 @@ class NetworkSecurityCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           const Text(
-            'Network Security',
+            'Keamanan Jaringan',
             style: TextStyle(
               color: AppColors.lightBlue,
               fontSize: 18,
@@ -619,7 +619,7 @@ class NetworkSecurityCard extends StatelessWidget {
           Opacity(
             opacity: 0.8,
             child: const Text(
-              'Your data is protected by end-to-end AES-\n256 encryption during every gesture\ntransmission.',
+              'Data Anda dilindungi oleh enkripsi end-to-end\nAES-256 selama setiap transmisi gerakan.',
               style: TextStyle(
                 color: AppColors.lightBlue,
                 fontSize: 14,
@@ -644,7 +644,7 @@ class NetworkSecurityCard extends StatelessWidget {
                     color: AppColors.lightBlue, size: 16),
                 SizedBox(width: 8),
                 Text(
-                  'ACTIVE ENCRYPTION',
+                  'ENKRIPSI AKTIF',
                   style: TextStyle(
                     color: AppColors.lightBlue,
                     fontSize: 12,
@@ -684,7 +684,7 @@ class TroubleshootCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const Text(
-            'Unable to find your glove?',
+            'Tidak dapat menemukan sarung tangan Anda?',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: AppColors.primary,
@@ -698,7 +698,7 @@ class TroubleshootCard extends StatelessWidget {
           const Padding(
             padding: EdgeInsets.only(bottom: 12),
             child: Text(
-              'Hold the pairing button on the wrist strap\nfor 3 seconds until the LED flashes blue.',
+              'Tekan dan tahan tombol pairing pada tali pergelangan\ntangan selama 3 detik hingga LED berkedip biru.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: AppColors.textGray,
@@ -717,7 +717,7 @@ class TroubleshootCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(9999),
             ),
             child: const Text(
-              'Troubleshoot Connection',
+              'Pemecahan Masalah Koneksi',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white,
@@ -779,7 +779,7 @@ class ScienceBannerCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'The Science of Reach',
+                  'Ilmu di Balik Jangkauan',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 20,
@@ -790,7 +790,7 @@ class ScienceBannerCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Sub-millisecond latency protocols for real-\ntime translation.',
+                  'Protokol latensi submilidetik untuk\npenerjemahan waktu nyata.',
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.7),
                     fontSize: 14,

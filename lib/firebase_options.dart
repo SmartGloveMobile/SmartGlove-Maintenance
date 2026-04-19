@@ -65,4 +65,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'smartglove-6ba79.firebasestorage.app',
     iosBundleId: 'com.example.smartglove',
   );
+
 }

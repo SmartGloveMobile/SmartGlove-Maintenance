@@ -274,7 +274,7 @@ class HeaderSection extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           const Text(
-            'Bluetooth Connected • 85%',
+            'Bluetooth Terhubung • 85%',
             style: AppTextStyles.lexendW600_14,
           ),
         ],
@@ -293,7 +293,7 @@ class TitleSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: const [
         Text(
-          'Translating\nMotion to Speech.',
+          'Menerjemahkan\nGerakan ke Suara.',
           style: TextStyle(
             color: AppColors.primary,
             fontSize: 36,
@@ -304,7 +304,7 @@ class TitleSection extends StatelessWidget {
         ),
         SizedBox(height: 16),
         Text(
-          'Your Smart Glove is active. Sign now for\nreal-time interpretation.',
+          'Sarung tangan pintar Anda aktif. Lakukan gerakan sekarang untuk\npenerjemahan waktu nyata.',
           style: TextStyle(
             color: AppColors.textGray,
             fontSize: 18,
@@ -351,7 +351,7 @@ class ActiveStreamCard extends StatelessWidget {
                       color: AppColors.teal, size: 20),
                   const SizedBox(width: 12),
                   const Text(
-                    'ACTIVE STREAM',
+                    'STREAM AKTIF',
                     style: TextStyle(
                       color: AppColors.teal,
                       fontSize: 14,
@@ -370,7 +370,7 @@ class ActiveStreamCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(9999),
                 ),
                 child: const Text(
-                  'Latency: 12ms',
+                  'Latensi: 12ms',
                   style: TextStyle(
                     color: AppColors.darkTeal,
                     fontSize: 12,
@@ -467,7 +467,7 @@ class TranslationOutputCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'TRANSLATION\nOUTPUT',
+                'HASIL\nTERJEMAHAN',
                 style: TextStyle(
                   color: AppColors.textGray,
                   fontSize: 14,
@@ -497,7 +497,7 @@ class TranslationOutputCard extends StatelessWidget {
           Stack(
             children: [
               const Text(
-                'Hello, my name is\nAlex. I am happy\nto meet you today.\nHow can I help? ',
+                'Halo, nama saya\nAlex. Saya senang\nbertemu dengan Anda\nhari ini. Ada yang bisa\nsaya bantu?',
                 style: TextStyle(
                   color: AppColors.textDark,
                   fontSize: 30,
@@ -537,7 +537,7 @@ class TranslationOutputCard extends StatelessWidget {
                       Icon(Icons.volume_up, color: Colors.white, size: 20),
                       SizedBox(width: 8),
                       Text(
-                        'Play Audio',
+                        'Putar Audio',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -588,7 +588,7 @@ class GloveHealthCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'Glove Health',
+                'Kesehatan Sarung Tangan',
                 style: TextStyle(
                   color: Color(0xFF002020),
                   fontSize: 16,
@@ -609,9 +609,9 @@ class GloveHealthCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          _buildHealthRow('FLEX SENSORS', '100%', 1.0),
+          _buildHealthRow('SENSOR FLEKSI', '100%', 1.0),
           const SizedBox(height: 16),
-          _buildHealthRow('IMU PRECISION', 'Optimal', 0.9),
+          _buildHealthRow('PRESISI IMU', 'Optimal', 0.9),
         ],
       ),
     );
@@ -687,7 +687,7 @@ class VoiceSettingsCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Voice Settings',
+            'Pengaturan Suara',
             style: TextStyle(
               color: AppColors.textDark,
               fontSize: 16,
@@ -696,10 +696,10 @@ class VoiceSettingsCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          _buildSettingItem('Natural Voice', 'Male (British)',
+          _buildSettingItem('Suara Natural', 'Pria (Inggris)',
               Icons.mic_outlined),
           const SizedBox(height: 16),
-          _buildSettingItem('Target Language', 'English (US)',
+          _buildSettingItem('Bahasa Target', 'Bahasa Indonesia',
               Icons.language_outlined),
         ],
       ),
@@ -794,7 +794,7 @@ class AdvancedAIBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Advanced AI Calibration',
+                  'Kalibrasi AI Lanjutan',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -804,7 +804,7 @@ class AdvancedAIBanner extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Learning your unique gesture style in real-time.',
+                  'Mempelajari gaya gestur unik Anda secara waktu nyata.',
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.8),
                     fontSize: 12,

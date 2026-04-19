@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'library_screen.dart'; // Import library screen
+import 'sensor_screen.dart'; // Import sensor calibration screen
 
 void main() {
   runApp(const MyApp());
@@ -256,7 +257,7 @@ class HeaderSection extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           const Text(
-            'Bluetooth Connected • 85%',
+            'Bluetooth Terhubung • 85%',
             style: AppTextStyles.lexendW600_14,
           ),
         ],
@@ -303,12 +304,12 @@ class WelcomeSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: const [
         Text(
-          'Hello, Friends',
+          'Halo, Teman-teman',
           style: AppTextStyles.lexendW400_36,
         ),
         SizedBox(height: 8),
         Text(
-          'Your glove is optimized and ready for use.',
+          'Sarung tangan Anda sudah optimal dan siap digunakan.',
           style: AppTextStyles.publicSansW400_16,
         ),
       ],
@@ -339,13 +340,15 @@ class DeviceStatusCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              _DeviceStatusInfo(),
-              _BatteryIndicator(),
+            children: [
+              const Expanded(
+                child: _DeviceStatusInfo(),
+              ),
+              const _BatteryIndicator(),
             ],
           ),
           const SizedBox(height: 32),
-          const _ActionButtons(),
+          _ActionButtons(),
         ],
       ),
     );
@@ -362,16 +365,25 @@ class _DeviceStatusInfo extends StatelessWidget {
       children: [
         Opacity(
           opacity: 0.8,
-          child: Text(
-            'DEVICE STATUS',
-            style: AppTextStyles.publicSansW500_14Status.copyWith(
+          child: const Text(
+            'STATUS PERANGKAT',
+            style: TextStyle(
+              fontFamily: 'Public Sans',
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
+              height: 1.43,
+              letterSpacing: 1.4,
               color: Colors.white,
             ),
           ),
         ),
-        Text(
-          'Active',
-          style: AppTextStyles.lexendW900_48.copyWith(
+        const Text(
+          'Aktif',
+          style: TextStyle(
+            fontFamily: 'Lexend',
+            fontWeight: FontWeight.w900,
+            fontSize: 48,
+            height: 1,
             color: Colors.white,
           ),
         ),
@@ -399,9 +411,15 @@ class _BatteryIndicator extends StatelessWidget {
             size: 20,
           ),
           const SizedBox(height: 4),
-          Text(
+          const Text(
             '85%',
-            style: AppTextStyles.lexendW700_16.copyWith(color: Colors.white),
+            style: TextStyle(
+              fontFamily: 'Lexend',
+              fontWeight: FontWeight.w700,
+              fontSize: 16,
+              height: 1.5,
+              color: Colors.white,
+            ),
           ),
         ],
       ),
@@ -411,6 +429,13 @@ class _BatteryIndicator extends StatelessWidget {
 
 class _ActionButtons extends StatelessWidget {
   const _ActionButtons();
+
+  void _navigateToCalibration(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const SensorCalibrationPage()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -432,9 +457,13 @@ class _ActionButtons extends StatelessWidget {
                 size: 20,
               ),
               const SizedBox(width: 8),
-              Text(
-                'Start Translation',
-                style: AppTextStyles.lexendW700_16.copyWith(
+              const Text(
+                'Mulai Terjemahan',
+                style: TextStyle(
+                  fontFamily: 'Lexend',
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16,
+                  height: 1.5,
                   color: AppColors.darkTeal,
                 ),
               ),
@@ -442,32 +471,40 @@ class _ActionButtons extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 16),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(9999),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.2),
+        // PERUBAHAN: Tombol Kalibrasi Sensor sekarang mengarah ke SensorCalibrationPage
+        GestureDetector(
+          onTap: () => _navigateToCalibration(context),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(9999),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.2),
+              ),
             ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.tune,
-                color: Colors.white,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Calibrate Sensors',
-                style: AppTextStyles.lexendW600_16.copyWith(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.tune,
                   color: Colors.white,
+                  size: 20,
                 ),
-              ),
-            ],
+                const SizedBox(width: 8),
+                const Text(
+                  'Kalibrasi Sensor',
+                  style: TextStyle(
+                    fontFamily: 'Lexend',
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                    height: 1.5,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -501,7 +538,7 @@ class DeviceHealthCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Device Health', style: AppTextStyles.lexendW700_20),
+              const Text('Kesehatan Perangkat', style: AppTextStyles.lexendW700_20),
               Container(
                 width: 32,
                 height: 32,
@@ -520,14 +557,14 @@ class DeviceHealthCard extends StatelessWidget {
           const SizedBox(height: 16),
           _buildHealthMetric(
             icon: Icons.flash_on,
-            label: 'Sensors',
+            label: 'Sensor',
             value: 'OPTIMAL',
             valueColor: AppColors.teal,
           ),
           const SizedBox(height: 12),
           _buildHealthMetric(
             icon: Icons.speed,
-            label: 'Latency',
+            label: 'Latensi',
             value: '12ms',
             valueColor: AppColors.teal,
           ),
@@ -605,7 +642,7 @@ class EfficiencyProgressBar extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         const Text(
-          'SYSTEM EFFICIENCY: 92%',
+          'EFISIENSI SISTEM: 92%',
           style: AppTextStyles.publicSansW400_10,
         ),
       ],
@@ -629,24 +666,35 @@ class RecommendedTranslationsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('Recommended Translations', style: AppTextStyles.lexendW700_24),
-            GestureDetector(
-              onTap: () => _navigateToLibrary(context),
-              child: Text(
-                'View All',
-                style: AppTextStyles.lexendW600_14.copyWith(
-                  color: AppColors.teal,
+        Padding(
+          padding: const EdgeInsets.only(right: 0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Text(
+                  'Rekomendasi Terjemahan',
+                  style: AppTextStyles.lexendW700_24,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
               ),
-            ),
-          ],
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () => _navigateToLibrary(context),
+                child: Text(
+                  'Lihat Semua',
+                  style: AppTextStyles.lexendW600_14.copyWith(
+                    color: AppColors.teal,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 16),
         Text(
-          'Most useful gestures for daily communication',
+          'Gesture paling berguna untuk komunikasi sehari-hari',
           style: AppTextStyles.publicSansW400_14Italic.copyWith(
             color: AppColors.textGray,
           ),
@@ -655,45 +703,45 @@ class RecommendedTranslationsSection extends StatelessWidget {
         _buildRecommendedItem(
           context: context,
           icon: Icons.waving_hand_outlined,
-          title: 'Hello / Greetings',
-          description: 'A standard flat palm wave performed at shoulder height',
-          category: 'Greeting',
+          title: 'Halo / Salam',
+          description: 'Gerakan telapak tangan datar setinggi bahu',
+          category: 'Salam',
           borderColor: AppColors.teal,
         ),
         const SizedBox(height: 16),
         _buildRecommendedItem(
           context: context,
           icon: Icons.favorite_outline,
-          title: 'Thank You',
-          description: 'Flat hand moves from chin outward towards the listener',
-          category: 'Polite',
+          title: 'Terima Kasih',
+          description: 'Gerakan tangan datar dari dagu ke arah lawan bicara',
+          category: 'Sopan Santun',
           borderColor: AppColors.primary,
         ),
         const SizedBox(height: 16),
         _buildRecommendedItem(
           context: context,
           icon: Icons.help_outline,
-          title: 'Help',
-          description: 'Closed fist on a flat palm, moved upward twice',
-          category: 'Emergency',
+          title: 'Tolong / Bantuan',
+          description: 'Kepalan tangan di atas telapak tangan datar, digerakkan ke atas dua kali',
+          category: 'Darurat',
           borderColor: AppColors.darkTeal,
         ),
         const SizedBox(height: 16),
         _buildRecommendedItem(
           context: context,
           icon: Icons.water_drop_outlined,
-          title: 'Water / Drink',
-          description: 'Three fingers extended, index finger tapping the chin',
-          category: 'Basic Need',
+          title: 'Air / Minum',
+          description: 'Tiga jari diluruskan, jari telunjuk mengetuk dagu',
+          category: 'Kebutuhan Dasar',
           borderColor: AppColors.lightTeal,
         ),
         const SizedBox(height: 16),
         _buildRecommendedItem(
           context: context,
           icon: Icons.restaurant_outlined,
-          title: 'Eat / Food',
-          description: 'Closed hand bringing fingertips toward the mouth',
-          category: 'Basic Need',
+          title: 'Makan / Makanan',
+          description: 'Tangan tertutup membawa ujung jari ke arah mulut',
+          category: 'Kebutuhan Dasar',
           borderColor: AppColors.secondary,
         ),
       ],
@@ -799,13 +847,13 @@ class RecommendedTranslationsSection extends StatelessWidget {
 
   Color _getCategoryColor(String category) {
     switch (category) {
-      case 'Greeting':
+      case 'Salam':
         return AppColors.teal;
-      case 'Polite':
+      case 'Sopan Santun':
         return AppColors.primary;
-      case 'Emergency':
+      case 'Darurat':
         return Colors.red.shade700;
-      case 'Basic Need':
+      case 'Kebutuhan Dasar':
         return AppColors.darkTeal;
       default:
         return AppColors.textGray;
@@ -822,12 +870,12 @@ class TutorialCardsSection extends StatelessWidget {
     return Column(
       children: const [
         TutorialCard(
-          title: 'Calibrating Precision',
+          title: 'Kalibrasi Presisi',
           imageUrl: 'https://placehold.co/342x256/1a1a2e/ffffff',
         ),
         SizedBox(height: 16),
         TutorialCard(
-          title: 'Intuitive Interaction',
+          title: 'Interaksi Intuitif',
           imageUrl: 'https://placehold.co/342x256/1a2e1a/ffffff',
         ),
       ],
