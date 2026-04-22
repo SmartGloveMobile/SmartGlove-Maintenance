@@ -1,41 +1,46 @@
 import 'package:flutter/material.dart';
-import 'package:smartglove/firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
+import 'package:provider/provider.dart';
+import 'firebase_options.dart';
 import 'dashboard.dart';
 import 'translate_screen.dart';
 import 'library_screen.dart';
 import 'settings_screen.dart';
 import 'splash_screen.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'providers/smart_glove_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Handle Firebase initialization based on platform
+  // Inisialisasi Firebase dengan penanganan duplicate app
   try {
-    // Check if running on web
-    if (const bool.fromEnvironment('dart.library.html')) {
-      // For web, Firebase might need different initialization
-      await Firebase.initializeApp(
-        options: const FirebaseOptions(
-          apiKey: "YOUR_API_KEY",
-          authDomain: "YOUR_AUTH_DOMAIN",
-          projectId: "YOUR_PROJECT_ID",
-          storageBucket: "YOUR_STORAGE_BUCKET",
-          messagingSenderId: "YOUR_SENDER_ID",
-          appId: "YOUR_APP_ID",
-        ),
-      );
-      print('Firebase initialized successfully for web');
-    } else {
-      // For mobile platforms
+    // Cek apakah sudah ada instance Firebase
+    if (Firebase.apps.isEmpty) {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
       print('Firebase initialized successfully');
+    } else {
+      print('Firebase already initialized, using existing instance');
     }
   } catch (e) {
-    print('Error initializing Firebase: $e');
-    // Continue running app even if Firebase fails (for development)
+    print('Firebase initialization error: $e');
+    // Jika error karena duplicate, lanjutkan saja
+    if (e.toString().contains('duplicate-app')) {
+      print('Duplicate app detected, continuing...');
+    } else {
+      rethrow;
+    }
+  }
+  
+  // Konfigurasi Realtime Database
+  try {
+    final database = FirebaseDatabase.instance;
+    database.setPersistenceEnabled(true);
+    print('Realtime Database configured');
+  } catch (e) {
+    print('Realtime Database config error: $e');
   }
   
   runApp(const SmartGloveApp());
@@ -46,16 +51,23 @@ class SmartGloveApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Smart Glove Translator',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        primarySwatch: Colors.teal,
-        fontFamily: 'Public Sans',
-        scaffoldBackgroundColor: const Color(0xFFF8F9FA),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => SmartGloveProvider()..connect(),
+        ),
+      ],
+      child: MaterialApp(
+        title: 'Smart Glove Translator',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          useMaterial3: true,
+          primarySwatch: Colors.teal,
+          fontFamily: 'Public Sans',
+          scaffoldBackgroundColor: const Color(0xFFF8F9FA),
+        ),
+        home: const SplashScreen(),
       ),
-      home: const SplashScreen(),
     );
   }
 }

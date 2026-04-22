@@ -55,6 +55,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '655953987672',
     projectId: 'smartglove-6ba79',
     storageBucket: 'smartglove-6ba79.firebasestorage.app',
+    databaseURL: 'https://smartglove-6ba79-default-rtdb.asia-southeast1.firebasedatabase.app', // TAMBAHKAN
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
@@ -64,6 +65,6 @@ class DefaultFirebaseOptions {
     projectId: 'smartglove-6ba79',
     storageBucket: 'smartglove-6ba79.firebasestorage.app',
     iosBundleId: 'com.example.smartglove',
+    databaseURL: 'https://smartglove-6ba79-default-rtdb.asia-southeast1.firebasedatabase.app', // TAMBAHKAN
   );
-
 }

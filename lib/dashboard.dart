@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'library_screen.dart'; // Import library screen
-import 'sensor_screen.dart'; // Import sensor calibration screen
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'library_screen.dart';
+import 'sensor_screen.dart';
+import '../providers/smart_glove_provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -194,6 +197,8 @@ class HeaderSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<SmartGloveProvider>(context);
+    
     return Container(
       width: double.infinity,
       color: AppColors.headerBg,
@@ -207,7 +212,7 @@ class HeaderSection extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _buildLogo(),
-          _buildConnectionStatus(),
+          _buildConnectionStatus(provider),
         ],
       ),
     );
@@ -238,7 +243,7 @@ class HeaderSection extends StatelessWidget {
     );
   }
 
-  Widget _buildConnectionStatus() {
+  Widget _buildConnectionStatus(SmartGloveProvider provider) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -250,14 +255,16 @@ class HeaderSection extends StatelessWidget {
           Container(
             width: 8,
             height: 8,
-            decoration: const BoxDecoration(
-              color: AppColors.teal,
+            decoration: BoxDecoration(
+              color: provider.isEsp32Connected ? AppColors.teal : Colors.red,
               shape: BoxShape.circle,
             ),
           ),
           const SizedBox(width: 8),
-          const Text(
-            'Bluetooth Terhubung • 85%',
+          Text(
+            provider.isEsp32Connected 
+                ? 'ESP32 Terhubung • ${provider.batteryLevel}%'
+                : 'Menunggu ESP32...',
             style: AppTextStyles.lexendW600_14,
           ),
         ],
@@ -286,7 +293,9 @@ class MainContent extends StatelessWidget {
           SizedBox(height: 40),
           RecommendedTranslationsSection(),
           SizedBox(height: 40),
-          TutorialCardsSection(),
+          LatestPredictionSection(),
+          SizedBox(height: 32),
+          FeatureCardsSection(),
           SizedBox(height: 32),
         ],
       ),
@@ -323,6 +332,8 @@ class DeviceStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<SmartGloveProvider>(context);
+    
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(32),
@@ -344,7 +355,7 @@ class DeviceStatusCard extends StatelessWidget {
               const Expanded(
                 child: _DeviceStatusInfo(),
               ),
-              const _BatteryIndicator(),
+              _BatteryIndicator(batteryLevel: provider.batteryLevel),
             ],
           ),
           const SizedBox(height: 32),
@@ -360,6 +371,8 @@ class _DeviceStatusInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<SmartGloveProvider>(context);
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -377,9 +390,9 @@ class _DeviceStatusInfo extends StatelessWidget {
             ),
           ),
         ),
-        const Text(
-          'Aktif',
-          style: TextStyle(
+        Text(
+          provider.isEsp32Connected ? 'Terhubung' : 'Terputus',
+          style: const TextStyle(
             fontFamily: 'Lexend',
             fontWeight: FontWeight.w900,
             fontSize: 48,
@@ -387,13 +400,25 @@ class _DeviceStatusInfo extends StatelessWidget {
             color: Colors.white,
           ),
         ),
+        const SizedBox(height: 8),
+        if (provider.isEsp32Connected)
+          Text(
+            'Tegangan: ${provider.batteryVoltage.toStringAsFixed(2)}V',
+            style: const TextStyle(
+              fontFamily: 'Public Sans',
+              fontSize: 12,
+              color: Colors.white70,
+            ),
+          ),
       ],
     );
   }
 }
 
 class _BatteryIndicator extends StatelessWidget {
-  const _BatteryIndicator();
+  final int batteryLevel;
+  
+  const _BatteryIndicator({required this.batteryLevel});
 
   @override
   Widget build(BuildContext context) {
@@ -411,9 +436,9 @@ class _BatteryIndicator extends StatelessWidget {
             size: 20,
           ),
           const SizedBox(height: 4),
-          const Text(
-            '85%',
-            style: TextStyle(
+          Text(
+            '$batteryLevel%',
+            style: const TextStyle(
               fontFamily: 'Lexend',
               fontWeight: FontWeight.w700,
               fontSize: 16,
@@ -437,37 +462,75 @@ class _ActionButtons extends StatelessWidget {
     );
   }
 
+  void _startTranslation(BuildContext context) {
+    final provider = Provider.of<SmartGloveProvider>(context, listen: false);
+    
+    // Cek status koneksi ESP32
+    if (!provider.isEsp32Connected) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            '❌ ESP32 tidak terhubung! Periksa koneksi Bluetooth/WiFi.',
+            style: TextStyle(fontSize: 14),
+          ),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    
+    // Jika terhubung, mulai terjemahan
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          '🎤 Memulai terjemahan... Lakukan gesture pada smart glove.',
+          style: TextStyle(fontSize: 14),
+        ),
+        backgroundColor: AppColors.teal,
+        duration: Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<SmartGloveProvider>(context);
+    
     return Column(
       children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          decoration: BoxDecoration(
-            color: AppColors.lightTeal,
-            borderRadius: BorderRadius.circular(9999),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.translate,
-                color: AppColors.darkTeal,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                'Mulai Terjemahan',
-                style: TextStyle(
-                  fontFamily: 'Lexend',
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16,
-                  height: 1.5,
-                  color: AppColors.darkTeal,
+        GestureDetector(
+          onTap: () => _startTranslation(context),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            decoration: BoxDecoration(
+              color: provider.isEsp32Connected ? AppColors.lightTeal : Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(9999),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.translate,
+                  color: provider.isEsp32Connected ? AppColors.darkTeal : Colors.grey.shade600,
+                  size: 20,
                 ),
-              ),
-            ],
+                const SizedBox(width: 8),
+                Text(
+                  'Mulai Terjemahan',
+                  style: TextStyle(
+                    fontFamily: 'Lexend',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                    height: 1.5,
+                    color: provider.isEsp32Connected ? AppColors.darkTeal : Colors.grey.shade600,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 16),
@@ -515,8 +578,25 @@ class _ActionButtons extends StatelessWidget {
 class DeviceHealthCard extends StatelessWidget {
   const DeviceHealthCard({super.key});
 
+  String _formatUptime(int seconds) {
+    final hours = seconds ~/ 3600;
+    final minutes = (seconds % 3600) ~/ 60;
+    if (hours > 0) {
+      return '${hours}h ${minutes}m';
+    }
+    return '${minutes}m';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<SmartGloveProvider>(context);
+    
+    // Tentukan status sensor berdasarkan koneksi
+    final sensorStatus = provider.isEsp32Connected 
+        ? (provider.sensorStatus.isNotEmpty ? provider.sensorStatus : 'OPTIMAL')
+        : 'TIDAK TERHUBUNG';
+    final statusColor = provider.isEsp32Connected ? AppColors.teal : Colors.red;
+    
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -545,9 +625,9 @@ class DeviceHealthCard extends StatelessWidget {
                   color: AppColors.teal.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.check_circle_outline,
-                  color: AppColors.teal,
+                child: Icon(
+                  provider.isEsp32Connected ? Icons.check_circle_outline : Icons.warning_amber_rounded,
+                  color: provider.isEsp32Connected ? AppColors.teal : Colors.orange,
                   size: 20,
                 ),
               ),
@@ -557,25 +637,41 @@ class DeviceHealthCard extends StatelessWidget {
           _buildHealthMetric(
             icon: Icons.flash_on,
             label: 'Sensor',
-            value: 'OPTIMAL',
-            valueColor: AppColors.teal,
+            value: sensorStatus,
+            valueColor: statusColor,
           ),
           const SizedBox(height: 12),
           _buildHealthMetric(
             icon: Icons.speed,
             label: 'Latensi',
-            value: '12ms',
+            value: provider.isEsp32Connected ? '${provider.latency}ms' : '--',
             valueColor: AppColors.teal,
+          ),
+          const SizedBox(height: 12),
+          _buildHealthMetric(
+            icon: Icons.wifi,
+            label: 'Kekuatan Sinyal',
+            value: provider.isEsp32Connected ? '${provider.wifiStrength} dBm' : '--',
+            valueColor: provider.wifiStrength > -50 ? AppColors.teal : Colors.orange,
           ),
           const SizedBox(height: 12),
           _buildHealthMetric(
             icon: Icons.settings,
             label: 'Firmware',
-            value: 'v2.4.1',
+            value: provider.isEsp32Connected ? provider.firmwareVersion : '--',
+            valueColor: AppColors.textGray,
+          ),
+          const SizedBox(height: 12),
+          _buildHealthMetric(
+            icon: Icons.timer,
+            label: 'Uptime',
+            value: provider.isEsp32Connected ? _formatUptime(provider.uptime) : '--',
             valueColor: AppColors.textGray,
           ),
           const SizedBox(height: 20),
-          const EfficiencyProgressBar(),
+          EfficiencyProgressBar(
+            efficiency: provider.isEsp32Connected ? provider.systemEfficiency : 0.0,
+          ),
         ],
       ),
     );
@@ -611,10 +707,14 @@ class DeviceHealthCard extends StatelessWidget {
 }
 
 class EfficiencyProgressBar extends StatelessWidget {
-  const EfficiencyProgressBar({super.key});
+  final double efficiency;
+  
+  const EfficiencyProgressBar({super.key, required this.efficiency});
 
   @override
   Widget build(BuildContext context) {
+    final efficiencyPercent = (efficiency * 100).toInt();
+    
     return Column(
       children: [
         Stack(
@@ -628,7 +728,7 @@ class EfficiencyProgressBar extends StatelessWidget {
               ),
             ),
             FractionallySizedBox(
-              widthFactor: 0.92,
+              widthFactor: efficiency,
               child: Container(
                 height: 6,
                 decoration: BoxDecoration(
@@ -640,12 +740,268 @@ class EfficiencyProgressBar extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        const Text(
-          'EFISIENSI SISTEM: 92%',
+        Text(
+          'EFISIENSI SISTEM: $efficiencyPercent%',
           style: AppTextStyles.publicSansW400_10,
         ),
       ],
     );
+  }
+}
+
+// ==================== LATEST PREDICTION SECTION ====================
+class LatestPredictionSection extends StatelessWidget {
+  const LatestPredictionSection({super.key});
+
+  DateTime _parseWaktu(dynamic waktuData) {
+    if (waktuData == null) return DateTime.now();
+    if (waktuData is DateTime) return waktuData;
+    if (waktuData is Timestamp) return waktuData.toDate();
+    if (waktuData is String) {
+      try {
+        return DateTime.parse(waktuData);
+      } catch (e) {
+        return DateTime.now();
+      }
+    }
+    return DateTime.now();
+  }
+
+  String _getGestureIcon(String hasil) {
+    switch (hasil.toLowerCase()) {
+      case 'terima kasih':
+        return '🙏';
+      case 'halo':
+      case 'salam':
+        return '👋';
+      case 'tolong':
+      case 'bantuan':
+        return '🆘';
+      case 'makan':
+      case 'makanan':
+        return '🍽️';
+      case 'air':
+      case 'minum':
+        return '💧';
+      default:
+        return '🤚';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Prediksi Terbaru',
+          style: AppTextStyles.lexendW700_24,
+        ),
+        const SizedBox(height: 4),
+        StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('prediksi')
+              .orderBy('waktu', descending: true)
+              .limit(5)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Container(
+                height: 80,
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            if (snapshot.hasError) {
+              return Container(
+                height: 80,
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline, color: Colors.red, size: 24),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Error: ${snapshot.error}',
+                        style: const TextStyle(color: Colors.red, fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            final docs = snapshot.data?.docs ?? [];
+            if (docs.isEmpty) {
+              return Container(
+                height: 80,
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.inbox_outlined, size: 32, color: AppColors.textGray),
+                      SizedBox(height: 4),
+                      Text(
+                        'Belum ada data prediksi',
+                        style: TextStyle(color: AppColors.textGray, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            return ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: docs.length,
+              itemBuilder: (context, index) {
+                final data = docs[index].data() as Map<String, dynamic>;
+                
+                double confidence = 0.0;
+                if (data['confidence_score'] != null) {
+                  if (data['confidence_score'] is double) {
+                    confidence = data['confidence_score'];
+                  } else if (data['confidence_score'] is int) {
+                    confidence = (data['confidence_score'] as int).toDouble();
+                  } else if (data['confidence_score'] is num) {
+                    confidence = (data['confidence_score'] as num).toDouble();
+                  }
+                }
+                
+                final hasil = data['hasil_prediksi'] ?? 'Tidak diketahui';
+                final waktu = _parseWaktu(data['waktu']);
+                final confidencePercent = (confidence * 100).toStringAsFixed(1);
+                
+                Color confidenceColor;
+                if (confidence >= 0.8) {
+                  confidenceColor = Colors.green;
+                } else if (confidence >= 0.6) {
+                  confidenceColor = Colors.orange;
+                } else {
+                  confidenceColor = Colors.red;
+                }
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.lightTeal),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.03),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: AppColors.teal.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Center(
+                          child: Text(
+                            _getGestureIcon(hasil),
+                            style: const TextStyle(fontSize: 26),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              hasil,
+                              style: AppTextStyles.lexendW700_18.copyWith(
+                                color: AppColors.textDark,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: confidenceColor.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.trending_up,
+                                        size: 11,
+                                        color: confidenceColor,
+                                      ),
+                                      const SizedBox(width: 3),
+                                      Text(
+                                        '$confidencePercent%',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                          color: confidenceColor,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  _formatDateTime(waktu),
+                                  style: AppTextStyles.publicSansW400_10.copyWith(
+                                    fontSize: 9,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  String _formatDateTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final date = DateTime(dateTime.year, dateTime.month, dateTime.day);
+    
+    if (date == today) {
+      return 'Hari ini, ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    } else if (date == today.subtract(const Duration(days: 1))) {
+      return 'Kemarin, ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    } else {
+      return '${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    }
   }
 }
 
@@ -826,18 +1182,6 @@ class RecommendedTranslationsSection extends StatelessWidget {
                 ],
               ),
             ),
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.lightTeal.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(9999),
-              ),
-              child: const Icon(
-                Icons.play_arrow,
-                color: AppColors.teal,
-                size: 20,
-              ),
-            ),
           ],
         ),
       ),
@@ -860,94 +1204,159 @@ class RecommendedTranslationsSection extends StatelessWidget {
   }
 }
 
-// ==================== TUTORIAL CARDS ====================
-class TutorialCardsSection extends StatelessWidget {
-  const TutorialCardsSection({super.key});
+// ==================== FEATURE CARDS SECTION ====================
+class FeatureCardsSection extends StatelessWidget {
+  const FeatureCardsSection({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: const [
-        TutorialCard(
-          title: 'Kalibrasi Presisi',
-          imageUrl: 'https://placehold.co/342x256/1a1a2e/ffffff',
+      children: [
+        FeatureCard(
+          title: 'Panduan Gesture',
+          subtitle: 'Pelajari 30+ gesture dasar',
+          description: 'Panduan lengkap gesture SIBI (Sistem Isyarat Bahasa Indonesia)',
+          icon: Icons.menu_book_rounded,
+          gradient: const LinearGradient(
+            colors: [Color(0xFF006A6A), Color(0xFF008080)],
+          ),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const GestureLibraryScreen()),
+            );
+          },
         ),
-        SizedBox(height: 16),
-        TutorialCard(
-          title: 'Interaksi Intuitif',
-          imageUrl: 'https://placehold.co/342x256/1a2e1a/ffffff',
+        const SizedBox(height: 16),
+        FeatureCard(
+          title: 'Mode Praktik',
+          subtitle: 'Latihan gesture interaktif',
+          description: 'Latih gesture Anda dan dapatkan umpan balik real-time',
+          icon: Icons.fitness_center_rounded,
+          gradient: const LinearGradient(
+            colors: [Color(0xFF004D64), Color(0xFF006684)],
+          ),
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Mode praktik akan segera hadir!')),
+            );
+          },
         ),
       ],
     );
   }
 }
 
-class TutorialCard extends StatelessWidget {
+class FeatureCard extends StatelessWidget {
   final String title;
-  final String imageUrl;
+  final String subtitle;
+  final String description;
+  final IconData icon;
+  final Gradient gradient;
+  final VoidCallback onTap;
 
-  const TutorialCard({
+  const FeatureCard({
     super.key,
     required this.title,
-    required this.imageUrl,
+    required this.subtitle,
+    required this.description,
+    required this.icon,
+    required this.gradient,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: 200,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(32),
-      ),
-      child: Stack(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(32),
-            child: Image.network(
-              imageUrl,
-              width: double.infinity,
-              height: 200,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  width: double.infinity,
-                  height: 200,
-                  color: Colors.grey[800],
-                );
-              },
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        height: 130,
+        decoration: BoxDecoration(
+          gradient: gradient,
+          borderRadius: BorderRadius.circular(28),
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              right: -20,
+              bottom: -20,
+              child: Icon(
+                icon,
+                size: 110,
+                color: Colors.white.withOpacity(0.08),
+              ),
             ),
-          ),
-          Container(
-            width: double.infinity,
-            height: 200,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(32),
-              gradient: LinearGradient(
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
-                colors: [
-                  Colors.black.withOpacity(0.7),
-                  Colors.transparent,
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Icon(icon, color: Colors.white, size: 22),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                fontFamily: 'Lexend',
+                              ),
+                            ),
+                            Text(
+                              subtitle,
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.8),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: const Icon(
+                          Icons.arrow_forward_rounded,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.7),
+                      fontSize: 12,
+                      fontFamily: 'Public Sans',
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
               ),
             ),
-            padding: const EdgeInsets.all(24),
-            child: Align(
-              alignment: Alignment.bottomLeft,
-              child: Text(
-                title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontFamily: 'Lexend',
-                  fontWeight: FontWeight.w700,
-                  height: 1.4,
-                ),
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

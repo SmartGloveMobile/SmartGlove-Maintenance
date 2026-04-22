@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
-import 'main.dart'; // Import MainWrapper dari main.dart
+import 'main_wrapper.dart'; // TAMBAHKAN IMPORT INI
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

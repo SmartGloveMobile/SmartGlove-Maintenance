@@ -1,4 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/smart_glove_provider.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: const SensorCalibrationPage(),
+    );
+  }
+}
 
 // ==================== COLORS ====================
 class AppColors {
@@ -19,38 +37,209 @@ class AppColors {
   static const mintTeal = Color(0xFFA0F0F0);
   static const deepTeal = Color(0xFF004F4F);
   static const guideCard = Color(0xFFE7E8E9);
+  static const textMuted = Color(0xFF70787E); // TAMBAHKAN INI
 }
 
 // ==================== SENSOR CALIBRATION PAGE ====================
-class SensorCalibrationPage extends StatelessWidget {
+class SensorCalibrationPage extends StatefulWidget {
   const SensorCalibrationPage({super.key});
 
   @override
+  State<SensorCalibrationPage> createState() => _SensorCalibrationPageState();
+}
+
+class _SensorCalibrationPageState extends State<SensorCalibrationPage> {
+  bool _isCalibrating = false;
+  
+  // Nilai sensor (akan diupdate dari provider)
+  List<int> _flexValues = [0, 0, 0, 0, 0];
+  double _pitch = 0.0;
+  double _roll = 0.0;
+  double _yaw = 0.0;
+  
+  // Status kalibrasi untuk guide
+  bool _isNeutralCalibrated = false;
+  bool _isFistCalibrated = false;
+  bool _isRangeCalibrated = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSensorData();
+  }
+  
+  void _loadSensorData() {
+    final provider = Provider.of<SmartGloveProvider>(context, listen: false);
+    
+    // Ambil data dari provider jika ESP32 terhubung
+    if (provider.isEsp32Connected) {
+      // Simulasi data flex sensor (nanti akan diganti dengan data real dari ESP32)
+      // Nilai ini akan diupdate secara periodik
+      _updateSensorData();
+    }
+  }
+  
+  void _updateSensorData() {
+    final provider = Provider.of<SmartGloveProvider>(context, listen: false);
+    
+    // Untuk sementara menggunakan data simulasi karena ESP32 belum mengirim data flex
+    // Nanti akan diganti dengan: _flexValues = provider.flexSensorValues;
+    
+    // Simulasi data flex sensor berdasarkan status koneksi
+    if (provider.isEsp32Connected) {
+      // Jika terhubung, tampilkan data yang lebih realistis
+      _flexValues = [65, 42, 38, 25, 18];
+      _pitch = 2.4;
+      _roll = -0.8;
+      _yaw = 182.0;
+    } else {
+      _flexValues = [0, 0, 0, 0, 0];
+      _pitch = 0.0;
+      _roll = 0.0;
+      _yaw = 0.0;
+    }
+    
+    if (mounted) {
+      setState(() {});
+    }
+  }
+  
+  void _startCalibration() async {
+    setState(() {
+      _isCalibrating = true;
+    });
+    
+    // Simulasi proses kalibrasi (nanti akan terhubung ke ESP32)
+    await Future.delayed(const Duration(seconds: 2));
+    
+    setState(() {
+      _isNeutralCalibrated = true;
+      // Update nilai flex setelah kalibrasi netral
+      _flexValues = [12, 8, 5, 3, 2];
+    });
+    
+    await Future.delayed(const Duration(seconds: 2));
+    
+    setState(() {
+      _isFistCalibrated = true;
+      // Update nilai flex setelah kalibrasi kepalan
+      _flexValues = [95, 92, 88, 85, 82];
+    });
+    
+    await Future.delayed(const Duration(seconds: 2));
+    
+    setState(() {
+      _isRangeCalibrated = true;
+      _isCalibrating = false;
+      // Update nilai MPU setelah kalibrasi
+      _pitch = 0.5;
+      _roll = 0.3;
+      _yaw = 0.0;
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Kalibrasi selesai! Sensor telah disesuaikan.'),
+        backgroundColor: AppColors.teal,
+      ),
+    );
+  }
+  
+  void _resetCalibration() {
+    setState(() {
+      _isNeutralCalibrated = false;
+      _isFistCalibrated = false;
+      _isRangeCalibrated = false;
+      _flexValues = [0, 0, 0, 0, 0];
+      _pitch = 0.0;
+      _roll = 0.0;
+      _yaw = 0.0;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<SmartGloveProvider>(context);
+    
+    // Update data sensor secara berkala jika ESP32 terhubung
+    if (provider.isEsp32Connected && !_isCalibrating) {
+      _updateSensorData();
+    }
+    
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          _buildHeader(context),
+          _buildHeader(context, provider),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  SizedBox(height: 32),
-                  _CalibrationTitleSection(),
-                  SizedBox(height: 32),
-                  _KeepHandFlatCard(),
-                  SizedBox(height: 16),
-                  _FingerFlexCard(),
-                  SizedBox(height: 16),
-                  _MPUDataCard(),
-                  SizedBox(height: 16),
-                  _CalibrationGuideCard(),
-                  SizedBox(height: 16),
-                  _ProTipCard(),
-                  SizedBox(height: 32),
+                children: [
+                  const SizedBox(height: 32),
+                  const _CalibrationTitleSection(),
+                  const SizedBox(height: 32),
+                  _KeepHandFlatCard(
+                    isCalibrating: _isCalibrating,
+                    isNeutralCalibrated: _isNeutralCalibrated,
+                    onCalibrate: _startCalibration,
+                  ),
+                  const SizedBox(height: 16),
+                  _FingerFlexCard(
+                    flexValues: _flexValues,
+                    isConnected: provider.isEsp32Connected,
+                  ),
+                  const SizedBox(height: 16),
+                  _MPUDataCard(
+                    pitch: _pitch,
+                    roll: _roll,
+                    yaw: _yaw,
+                    isConnected: provider.isEsp32Connected,
+                  ),
+                  const SizedBox(height: 16),
+                  _CalibrationGuideCard(
+                    isNeutralCalibrated: _isNeutralCalibrated,
+                    isFistCalibrated: _isFistCalibrated,
+                    isRangeCalibrated: _isRangeCalibrated,
+                  ),
+                  const SizedBox(height: 16),
+                  const _ProTipCard(),
+                  const SizedBox(height: 16),
+                  // Tombol Reset Kalibrasi
+                  if (_isNeutralCalibrated || _isFistCalibrated || _isRangeCalibrated)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 32),
+                      child: GestureDetector(
+                        onTap: _resetCalibration,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(9999),
+                            border: Border.all(color: AppColors.borderColor),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.refresh, color: AppColors.textGray, size: 18),
+                              SizedBox(width: 10),
+                              Text(
+                                'Reset Kalibrasi',
+                                style: TextStyle(
+                                  color: AppColors.textGray,
+                                  fontSize: 16,
+                                  fontFamily: 'Lexend',
+                                  fontWeight: FontWeight.w600,
+                                  height: 1.50,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -60,7 +249,7 @@ class SensorCalibrationPage extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, SmartGloveProvider provider) {
     return Container(
       width: double.infinity,
       color: AppColors.headerBg,
@@ -75,7 +264,6 @@ class SensorCalibrationPage extends StatelessWidget {
         children: [
           Row(
             children: [
-              // Tombol Kembali
               GestureDetector(
                 onTap: () => Navigator.of(context).pop(),
                 child: Container(
@@ -93,7 +281,6 @@ class SensorCalibrationPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              // Logo
               Container(
                 width: 32,
                 height: 32,
@@ -121,7 +308,6 @@ class SensorCalibrationPage extends StatelessWidget {
               ),
             ],
           ),
-          // Status Bluetooth
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
@@ -133,15 +319,17 @@ class SensorCalibrationPage extends StatelessWidget {
                 Container(
                   width: 8,
                   height: 8,
-                  decoration: const BoxDecoration(
-                    color: AppColors.teal,
+                  decoration: BoxDecoration(
+                    color: provider.isEsp32Connected ? AppColors.teal : Colors.red,
                     shape: BoxShape.circle,
                   ),
                 ),
                 const SizedBox(width: 8),
-                const Text(
-                  'Bluetooth Terhubung • 85%',
-                  style: TextStyle(
+                Text(
+                  provider.isEsp32Connected 
+                      ? 'ESP32 Terhubung • ${provider.batteryLevel}%'
+                      : 'Menunggu ESP32...',
+                  style: const TextStyle(
                     fontFamily: 'Lexend',
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
@@ -168,7 +356,6 @@ class _CalibrationTitleSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Label atas
         const Text(
           'PENGATURAN SISTEM',
           style: TextStyle(
@@ -181,7 +368,6 @@ class _CalibrationTitleSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        // Judul utama
         const Text(
           'Kalibrasi\nSensor',
           style: TextStyle(
@@ -193,7 +379,6 @@ class _CalibrationTitleSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        // Deskripsi
         const Text(
           'Sinkronkan sensor fleksibel dan orientasi\nSmart Glove Anda untuk akurasi\nterjemahan yang presisi.',
           style: TextStyle(
@@ -204,69 +389,6 @@ class _CalibrationTitleSection extends StatelessWidget {
             height: 1.56,
           ),
         ),
-        const SizedBox(height: 24),
-        // Indikator langkah
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                RichText(
-                  text: const TextSpan(
-                    children: [
-                      TextSpan(
-                        text: 'Langkah 2',
-                        style: TextStyle(
-                          color: AppColors.primary,
-                          fontSize: 28,
-                          fontFamily: 'Lexend',
-                          fontWeight: FontWeight.w700,
-                          height: 1.20,
-                        ),
-                      ),
-                      TextSpan(
-                        text: '/4',
-                        style: TextStyle(
-                          color: Color(0x6670787E),
-                          fontSize: 28,
-                          fontFamily: 'Lexend',
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  width: 192,
-                  height: 8,
-                  clipBehavior: Clip.antiAlias,
-                  decoration: ShapeDecoration(
-                    color: const Color(0xFFE1E3E4),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(9999),
-                    ),
-                  ),
-                  child: Stack(
-                    children: [
-                      Container(
-                        width: 96,
-                        height: 8,
-                        decoration: ShapeDecoration(
-                          color: AppColors.primary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(9999),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
       ],
     );
   }
@@ -274,7 +396,15 @@ class _CalibrationTitleSection extends StatelessWidget {
 
 // ==================== KARTU TELAPAK TANGAN DATAR ====================
 class _KeepHandFlatCard extends StatelessWidget {
-  const _KeepHandFlatCard();
+  final bool isCalibrating;
+  final bool isNeutralCalibrated;
+  final VoidCallback onCalibrate;
+  
+  const _KeepHandFlatCard({
+    required this.isCalibrating,
+    required this.isNeutralCalibrated,
+    required this.onCalibrate,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -320,33 +450,75 @@ class _KeepHandFlatCard extends StatelessWidget {
               ),
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-            decoration: ShapeDecoration(
-              color: AppColors.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(9999),
-              ),
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.sensors, color: Colors.white, size: 18),
-                SizedBox(width: 10),
-                Text(
-                  'Mulai Kalibrasi Netral',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontFamily: 'Lexend',
-                    fontWeight: FontWeight.w600,
-                    height: 1.50,
+          if (!isNeutralCalibrated)
+            GestureDetector(
+              onTap: isCalibrating ? null : onCalibrate,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                decoration: ShapeDecoration(
+                  color: isCalibrating ? Colors.grey : AppColors.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(9999),
                   ),
                 ),
-              ],
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (isCalibrating)
+                      const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    else
+                      const Icon(Icons.sensors, color: Colors.white, size: 18),
+                    const SizedBox(width: 10),
+                    Text(
+                      isCalibrating ? 'Mengkalibrasi...' : 'Mulai Kalibrasi Netral',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontFamily: 'Lexend',
+                        fontWeight: FontWeight.w600,
+                        height: 1.50,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ),
+          if (isNeutralCalibrated)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+              decoration: ShapeDecoration(
+                color: AppColors.teal,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(9999),
+                ),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white, size: 18),
+                  SizedBox(width: 10),
+                  Text(
+                    'Kalibrasi Netral Selesai',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontFamily: 'Lexend',
+                      fontWeight: FontWeight.w600,
+                      height: 1.50,
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
@@ -355,18 +527,24 @@ class _KeepHandFlatCard extends StatelessWidget {
 
 // ==================== KARTU FLEKSIBEL JARI ====================
 class _FingerFlexCard extends StatelessWidget {
-  const _FingerFlexCard();
-
-  static const _fingers = [
-    _FingerData('JEMPOL', 12),
-    _FingerData('TELUNJUK', 5),
-    _FingerData('TENGAH', 8),
-    _FingerData('MANIS', 4),
-    _FingerData('KELINGKING', 15),
-  ];
+  final List<int> flexValues;
+  final bool isConnected;
+  
+  const _FingerFlexCard({
+    required this.flexValues,
+    required this.isConnected,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final fingers = [
+      _FingerData('JEMPOL', flexValues[0]),
+      _FingerData('TELUNJUK', flexValues[1]),
+      _FingerData('TENGAH', flexValues[2]),
+      _FingerData('MANIS', flexValues[3]),
+      _FingerData('KELINGKING', flexValues[4]),
+    ];
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -377,7 +555,6 @@ class _FingerFlexCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Row(
             children: [
               Container(
@@ -387,14 +564,17 @@ class _FingerFlexCard extends StatelessWidget {
                   color: AppColors.primary.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Icon(Icons.bar_chart_rounded,
-                    color: AppColors.teal, size: 18),
+                child: Icon(
+                  Icons.bar_chart_rounded,
+                  color: isConnected ? AppColors.teal : AppColors.textGray,
+                  size: 18,
+                ),
               ),
               const SizedBox(width: 12),
-              const Text(
+              Text(
                 'Fleksibel Jari (Resistif)',
                 style: TextStyle(
-                  color: AppColors.primary,
+                  color: isConnected ? AppColors.primary : AppColors.textGray,
                   fontSize: 16,
                   fontFamily: 'Lexend',
                   fontWeight: FontWeight.w700,
@@ -404,15 +584,31 @@ class _FingerFlexCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          // Batang progress
-          Column(
-            children: _fingers
-                .map((f) => Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: _FingerBarRow(data: f),
-                    ))
-                .toList(),
-          ),
+          if (!isConnected)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Center(
+                child: Column(
+                  children: [
+                    Icon(Icons.bluetooth_disabled, size: 48, color: AppColors.textGray),
+                    SizedBox(height: 12),
+                    Text(
+                      'Tunggu koneksi ESP32...',
+                      style: TextStyle(color: AppColors.textGray),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            Column(
+              children: fingers
+                  .map((f) => Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _FingerBarRow(data: f),
+                      ))
+                  .toList(),
+            ),
         ],
       ),
     );
@@ -421,8 +617,8 @@ class _FingerFlexCard extends StatelessWidget {
 
 class _FingerData {
   final String label;
-  final int percent;
-  const _FingerData(this.label, this.percent);
+  final int value;
+  const _FingerData(this.label, this.value);
 }
 
 class _FingerBarRow extends StatelessWidget {
@@ -431,6 +627,10 @@ class _FingerBarRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Normalisasi nilai (asumsi max 100 untuk flex sensor)
+    final percentage = (data.value / 100.0).clamp(0.0, 1.0);
+    final percentInt = (percentage * 100).toInt();
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -448,7 +648,7 @@ class _FingerBarRow extends StatelessWidget {
               ),
             ),
             Text(
-              '${data.percent}%',
+              '$percentInt%',
               style: const TextStyle(
                 color: AppColors.teal,
                 fontSize: 12,
@@ -472,7 +672,7 @@ class _FingerBarRow extends StatelessWidget {
           ),
           child: FractionallySizedBox(
             alignment: Alignment.centerLeft,
-            widthFactor: data.percent / 100,
+            widthFactor: percentage,
             child: Container(
               decoration: BoxDecoration(
                 color: AppColors.teal,
@@ -488,7 +688,17 @@ class _FingerBarRow extends StatelessWidget {
 
 // ==================== KARTU DATA MPU ====================
 class _MPUDataCard extends StatelessWidget {
-  const _MPUDataCard();
+  final double pitch;
+  final double roll;
+  final double yaw;
+  final bool isConnected;
+  
+  const _MPUDataCard({
+    required this.pitch,
+    required this.roll,
+    required this.yaw,
+    required this.isConnected,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -504,7 +714,6 @@ class _MPUDataCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Row(
             children: [
               Container(
@@ -531,22 +740,48 @@ class _MPUDataCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
-          // Widget kompas
-          const Center(child: _CompassWidget()),
+          if (!isConnected)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Center(
+                child: Column(
+                  children: [
+                    Icon(Icons.sensors_off, size: 48, color: AppColors.lightTeal),
+                    SizedBox(height: 12),
+                    Text(
+                      'Menunggu data sensor...',
+                      style: TextStyle(color: AppColors.lightTeal),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            Center(
+              child: _CompassWidget(yaw: yaw, pitch: pitch, roll: roll),
+            ),
           const SizedBox(height: 24),
-          // Baris metrik
           Row(
             children: [
               Expanded(
-                child: _MPUMetricBox(label: 'PITCH', value: '2.4°'),
+                child: _MPUMetricBox(
+                  label: 'PITCH',
+                  value: isConnected ? '${pitch.toStringAsFixed(1)}°' : '--',
+                ),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: _MPUMetricBox(label: 'ROLL', value: '-0.8°'),
+                child: _MPUMetricBox(
+                  label: 'ROLL',
+                  value: isConnected ? '${roll.toStringAsFixed(1)}°' : '--',
+                ),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: _MPUMetricBox(label: 'YAW', value: '182°'),
+                child: _MPUMetricBox(
+                  label: 'YAW',
+                  value: isConnected ? '${yaw.toStringAsFixed(0)}°' : '--',
+                ),
               ),
             ],
           ),
@@ -557,7 +792,15 @@ class _MPUDataCard extends StatelessWidget {
 }
 
 class _CompassWidget extends StatelessWidget {
-  const _CompassWidget();
+  final double yaw;
+  final double pitch;
+  final double roll;
+  
+  const _CompassWidget({
+    required this.yaw,
+    required this.pitch,
+    required this.roll,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -565,13 +808,23 @@ class _CompassWidget extends StatelessWidget {
       width: 128,
       height: 128,
       child: CustomPaint(
-        painter: _CompassPainter(),
+        painter: _CompassPainter(yaw: yaw, pitch: pitch, roll: roll),
       ),
     );
   }
 }
 
 class _CompassPainter extends CustomPainter {
+  final double yaw;
+  final double pitch;
+  final double roll;
+  
+  const _CompassPainter({
+    required this.yaw,
+    required this.pitch,
+    required this.roll,
+  });
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
@@ -584,34 +837,53 @@ class _CompassPainter extends CustomPainter {
       ..strokeWidth = 2;
     canvas.drawCircle(center, outerRadius - 1, ringPaint);
 
-    // Elips dalam (indikator kemiringan)
+    // Elips dalam (indikator kemiringan berdasarkan pitch & roll)
     final ovalPaint = Paint()
       ..color = Colors.white.withOpacity(0.15)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
+    
+    final tiltX = (roll / 90).clamp(-0.5, 0.5);
+    final tiltY = (pitch / 90).clamp(-0.5, 0.5);
+    
     canvas.drawOval(
-      Rect.fromCenter(center: center, width: 80, height: 40),
+      Rect.fromCenter(
+        center: center + Offset(tiltX * 20, tiltY * 20),
+        width: 80,
+        height: 40,
+      ),
       ovalPaint,
     );
 
-    // Jarum
+    // Jarum berdasarkan yaw
     final needlePaint = Paint()
       ..color = AppColors.mintTeal
       ..strokeWidth = 3
       ..strokeCap = StrokeCap.round;
     canvas.save();
     canvas.translate(center.dx, center.dy);
-    canvas.rotate(0.26);
+    canvas.rotate(yaw * 3.14159 / 180);
     canvas.drawLine(const Offset(0, 0), const Offset(0, -48), needlePaint);
     canvas.restore();
 
     // Titik tengah
     final dotPaint = Paint()..color = Colors.white;
     canvas.drawCircle(center, 8, dotPaint);
+    
+    // Label arah mata angin
+    final textPainter = TextPainter(
+      text: const TextSpan(
+        text: 'N',
+        style: TextStyle(color: Colors.white70, fontSize: 12),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+    textPainter.layout();
+    textPainter.paint(canvas, Offset(center.dx - 4, center.dy - 58));
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
 
 class _MPUMetricBox extends StatelessWidget {
@@ -664,7 +936,15 @@ class _MPUMetricBox extends StatelessWidget {
 
 // ==================== KARTU PANDUAN KALIBRASI ====================
 class _CalibrationGuideCard extends StatelessWidget {
-  const _CalibrationGuideCard();
+  final bool isNeutralCalibrated;
+  final bool isFistCalibrated;
+  final bool isRangeCalibrated;
+  
+  const _CalibrationGuideCard({
+    required this.isNeutralCalibrated,
+    required this.isFistCalibrated,
+    required this.isRangeCalibrated,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -691,17 +971,17 @@ class _CalibrationGuideCard extends StatelessWidget {
           const SizedBox(height: 16),
           _GuideItem(
             text: 'Netral: Posisikan tangan datar untuk pembacaan sinyal dasar.',
-            isDone: true,
+            isDone: isNeutralCalibrated,
           ),
           const SizedBox(height: 12),
           _GuideItem(
             text: 'Kepalan: Tekuk semua jari untuk mengatur resistansi maksimum.',
-            isDone: false,
+            isDone: isFistCalibrated,
           ),
           const SizedBox(height: 12),
           _GuideItem(
             text: 'Rentang: Gerakkan tangan membentuk angka delapan untuk mengkalibrasi MPU.',
-            isDone: false,
+            isDone: isRangeCalibrated,
           ),
         ],
       ),
@@ -809,7 +1089,6 @@ class _ProTipCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          // Area gambar sarung tangan
           Opacity(
             opacity: 0.85,
             child: ClipRRect(

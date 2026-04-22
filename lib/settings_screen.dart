@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/smart_glove_provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,7 +18,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// ==================== COLORS (Sesuai dashboard.dart) ====================
+// ==================== COLORS ====================
 class AppColors {
   static const primary = Color(0xFF004D64);
   static const secondary = Color(0xFF006684);
@@ -35,9 +37,10 @@ class AppColors {
   static const mintTeal = Color(0xFFA0F0F0);
   static const deepTeal = Color(0xFF004F4F);
   static const divider = Color(0xFFE7E8E9);
+  static const borderColor = Color(0x1A000000);
 }
 
-// ==================== TEXT STYLES (Sesuai dashboard.dart) ====================
+// ==================== TEXT STYLES ====================
 class AppTextStyles {
   static const lexendW900_20 = TextStyle(
     fontFamily: 'Lexend',
@@ -182,20 +185,20 @@ class DeviceConnectivityScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  SizedBox(height: 32),
-                  TitleSection(),
-                  SizedBox(height: 32),
-                  PairingStatusCard(),
-                  SizedBox(height: 24),
-                  AvailableDevicesCard(),
-                  SizedBox(height: 24),
-                  NetworkSecurityCard(),
-                  SizedBox(height: 24),
-                  TroubleshootCard(),
-                  SizedBox(height: 24),
-                  ScienceBannerCard(),
-                  SizedBox(height: 32),
+                children: [
+                  const SizedBox(height: 32),
+                  const TitleSection(),
+                  const SizedBox(height: 32),
+                  const PairingStatusCard(),
+                  const SizedBox(height: 24),
+                  const AvailableDevicesCard(),
+                  const SizedBox(height: 24),
+                  const NetworkSecurityCard(),
+                  const SizedBox(height: 24),
+                  const TroubleshootCard(),
+                  const SizedBox(height: 24),
+                  const ScienceBannerCard(),
+                  const SizedBox(height: 32),
                 ],
               ),
             ),
@@ -212,6 +215,8 @@ class HeaderSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<SmartGloveProvider>(context);
+    
     return Container(
       width: double.infinity,
       color: AppColors.headerBg,
@@ -225,7 +230,7 @@ class HeaderSection extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _buildLogo(),
-          _buildConnectionStatus(),
+          _buildConnectionStatus(provider),
         ],
       ),
     );
@@ -256,7 +261,7 @@ class HeaderSection extends StatelessWidget {
     );
   }
 
-  Widget _buildConnectionStatus() {
+  Widget _buildConnectionStatus(SmartGloveProvider provider) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -268,14 +273,16 @@ class HeaderSection extends StatelessWidget {
           Container(
             width: 8,
             height: 8,
-            decoration: const BoxDecoration(
-              color: AppColors.teal,
+            decoration: BoxDecoration(
+              color: provider.isEsp32Connected ? AppColors.teal : Colors.red,
               shape: BoxShape.circle,
             ),
           ),
           const SizedBox(width: 8),
-          const Text(
-            'Bluetooth Terhubung • 85%',
+          Text(
+            provider.isEsp32Connected 
+                ? 'ESP32 Terhubung • ${provider.batteryLevel}%'
+                : 'Menunggu ESP32...',
             style: AppTextStyles.lexendW600_14,
           ),
         ],
@@ -326,6 +333,21 @@ class PairingStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<SmartGloveProvider>(context);
+    
+    final isConnected = provider.isEsp32Connected;
+    final statusText = isConnected ? 'Terhubung' : 'Memasangkan';
+    final statusColor = isConnected ? AppColors.deepTeal : const Color(0xFF002020);
+    final deviceName = isConnected 
+        ? 'Smart Glove (ESP32 - ${provider.firmwareVersion})' 
+        : 'Smart Glove (Menunggu Koneksi)';
+    final progressValue = isConnected ? 1.0 : (provider.latency > 0 ? 0.9 : 0.53);
+    final statusMessage = isConnected 
+        ? 'Terhubung dengan aman • Latensi ${provider.latency}ms' 
+        : provider.isConnected 
+            ? 'Mencoba jabat tangan aman...' 
+            : 'Menunggu koneksi ke Firebase...';
+    
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(32),
@@ -354,21 +376,21 @@ class PairingStatusCard extends StatelessWidget {
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text(
-                    'Memasangkan',
+                    statusText,
                     style: TextStyle(
-                      color: Color(0xFF002020),
+                      color: statusColor,
                       fontSize: 30,
                       fontFamily: 'Lexend',
                       fontWeight: FontWeight.w700,
                       height: 1.2,
                     ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
-                    'Smart Glove (NFL-03)',
-                    style: TextStyle(
+                    deviceName,
+                    style: const TextStyle(
                       color: AppColors.deepTeal,
                       fontSize: 16,
                       fontFamily: 'Public Sans',
@@ -385,8 +407,8 @@ class PairingStatusCard extends StatelessWidget {
                   color: Colors.white.withOpacity(0.4),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.bluetooth,
+                child: Icon(
+                  isConnected ? Icons.bluetooth_connected : Icons.bluetooth,
                   color: AppColors.deepTeal,
                   size: 22,
                 ),
@@ -403,7 +425,7 @@ class PairingStatusCard extends StatelessWidget {
             ),
             child: FractionallySizedBox(
               alignment: Alignment.centerLeft,
-              widthFactor: 0.53,
+              widthFactor: progressValue,
               child: Container(
                 decoration: BoxDecoration(
                   color: AppColors.teal,
@@ -413,9 +435,9 @@ class PairingStatusCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Mencoba jabat tangan aman...',
-            style: TextStyle(
+          Text(
+            statusMessage,
+            style: const TextStyle(
               color: AppColors.deepTeal,
               fontSize: 12,
               fontFamily: 'Public Sans',
@@ -435,6 +457,8 @@ class AvailableDevicesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<SmartGloveProvider>(context);
+    
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -465,88 +489,71 @@ class AvailableDevicesCard extends StatelessWidget {
                   height: 1.56,
                 ),
               ),
-              Icon(Icons.refresh_rounded,
-                  color: AppColors.teal, size: 20),
+              GestureDetector(
+                onTap: () {
+                  provider.connect();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Memindai perangkat...'),
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+                },
+                child: Icon(Icons.refresh_rounded,
+                    color: AppColors.teal, size: 20),
+              ),
             ],
           ),
           const SizedBox(height: 24),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.cardBg,
-              borderRadius: BorderRadius.circular(48),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppColors.statusLight,
-                    shape: BoxShape.circle,
+          // Smart Glove Device - Status berdasarkan koneksi ESP32
+          GestureDetector(
+            onTap: () {
+              if (!provider.isEsp32Connected) {
+                provider.connect();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Menghubungkan ke Smart Glove...'),
+                    duration: Duration(seconds: 2),
                   ),
-                  child: const Icon(Icons.front_hand_outlined,
-                      color: AppColors.primary, size: 18),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        'Smart Glove (NFL-03)',
-                        style: TextStyle(
-                          color: AppColors.textDark,
-                          fontSize: 14,
-                          fontFamily: 'Lexend',
-                          fontWeight: FontWeight.w400,
-                          height: 1.43,
-                        ),
-                      ),
-                      Text(
-                        'Di Sekitar • Sinyal Kuat',
-                        style: TextStyle(
-                          color: AppColors.textGray,
-                          fontSize: 12,
-                          fontFamily: 'Public Sans',
-                          fontWeight: FontWeight.w400,
-                          height: 1.33,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Icon(Icons.chevron_right,
-                    color: AppColors.textGray, size: 20),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          Opacity(
-            opacity: 0.6,
+                );
+              }
+            },
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: provider.isEsp32Connected 
+                    ? AppColors.teal.withOpacity(0.1)
+                    : AppColors.cardBg,
+                borderRadius: BorderRadius.circular(48),
+                border: provider.isEsp32Connected
+                    ? Border.all(color: AppColors.teal, width: 1)
+                    : null,
+              ),
               child: Row(
                 children: [
                   Container(
                     width: 40,
                     height: 40,
-                    decoration: const BoxDecoration(
-                      color: AppColors.divider,
+                    decoration: BoxDecoration(
+                      color: provider.isEsp32Connected 
+                          ? AppColors.teal.withOpacity(0.2)
+                          : AppColors.statusLight,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.headphones_outlined,
-                        color: AppColors.textGray, size: 18),
+                    child: Icon(
+                      Icons.front_hand_outlined,
+                      color: provider.isEsp32Connected ? AppColors.teal : AppColors.primary,
+                      size: 18,
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
-                          'Studio Audio X1',
+                          'Smart Glove (ESP32)',
                           style: TextStyle(
                             color: AppColors.textDark,
                             fontSize: 14,
@@ -556,9 +563,13 @@ class AvailableDevicesCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'Perangkat Standar',
+                          provider.isEsp32Connected 
+                              ? 'Terhubung • Sinyal ${provider.wifiStrength} dBm'
+                              : provider.isConnected
+                                  ? 'Di Sekitar • Sinyal Kuat'
+                                  : 'Menunggu koneksi...',
                           style: TextStyle(
-                            color: AppColors.textGray,
+                            color: provider.isEsp32Connected ? AppColors.teal : AppColors.textGray,
                             fontSize: 12,
                             fontFamily: 'Public Sans',
                             fontWeight: FontWeight.w400,
@@ -568,6 +579,10 @@ class AvailableDevicesCard extends StatelessWidget {
                       ],
                     ),
                   ),
+                  if (provider.isEsp32Connected)
+                    const Icon(Icons.check_circle, color: AppColors.teal, size: 20)
+                  else
+                    const Icon(Icons.chevron_right, color: AppColors.textGray, size: 20),
                 ],
               ),
             ),
@@ -584,6 +599,8 @@ class NetworkSecurityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<SmartGloveProvider>(context);
+    
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -618,9 +635,11 @@ class NetworkSecurityCard extends StatelessWidget {
           const SizedBox(height: 8),
           Opacity(
             opacity: 0.8,
-            child: const Text(
-              'Data Anda dilindungi oleh enkripsi end-to-end\nAES-256 selama setiap transmisi gerakan.',
-              style: TextStyle(
+            child: Text(
+              provider.isEsp32Connected
+                  ? 'Data Anda dilindungi oleh enkripsi end-to-end\nAES-256 selama setiap transmisi gerakan.\nKoneksi: ${provider.wifiStrength} dBm'
+                  : 'Data Anda dilindungi oleh enkripsi end-to-end\nAES-256 selama setiap transmisi gerakan.',
+              style: const TextStyle(
                 color: AppColors.lightBlue,
                 fontSize: 14,
                 fontFamily: 'Public Sans',
@@ -639,13 +658,16 @@ class NetworkSecurityCard extends StatelessWidget {
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Icon(Icons.shield_outlined,
-                    color: AppColors.lightBlue, size: 16),
-                SizedBox(width: 8),
+              children: [
+                Icon(
+                  provider.isEsp32Connected ? Icons.shield : Icons.shield_outlined,
+                  color: AppColors.lightBlue,
+                  size: 16,
+                ),
+                const SizedBox(width: 8),
                 Text(
-                  'ENKRIPSI AKTIF',
-                  style: TextStyle(
+                  provider.isEsp32Connected ? 'ENKRIPSI AKTIF' : 'ENKRIPSI SIAP',
+                  style: const TextStyle(
                     color: AppColors.lightBlue,
                     fontSize: 12,
                     fontFamily: 'Public Sans',
@@ -666,6 +688,93 @@ class NetworkSecurityCard extends StatelessWidget {
 // ==================== TROUBLESHOOT CARD ====================
 class TroubleshootCard extends StatelessWidget {
   const TroubleshootCard({super.key});
+
+  void _showTroubleshootDialog(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Pemecahan Masalah Koneksi',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Lexend',
+                ),
+              ),
+              const SizedBox(height: 16),
+              _buildTroubleshootItem(
+                '1. Pastikan ESP32 menyala',
+                'Periksa LED indikator pada perangkat',
+              ),
+              _buildTroubleshootItem(
+                '2. Periksa koneksi WiFi',
+                'Pastikan ESP32 terhubung ke jaringan WiFi',
+              ),
+              _buildTroubleshootItem(
+                '3. Restart aplikasi',
+                'Tutup dan buka kembali aplikasi',
+              ),
+              _buildTroubleshootItem(
+                '4. Cek koneksi Firebase',
+                'Pastikan aplikasi terhubung ke Firebase',
+              ),
+              _buildTroubleshootItem(
+                '5. Reset perangkat',
+                'Tekan tombol reset pada ESP32 selama 5 detik',
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.teal,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+                child: const Text('Tutup'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildTroubleshootItem(String title, String subtitle) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.textGray,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -709,22 +818,25 @@ class TroubleshootCard extends StatelessWidget {
               ),
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 32, vertical: 12),
-            decoration: BoxDecoration(
-              color: AppColors.teal,
-              borderRadius: BorderRadius.circular(9999),
-            ),
-            child: const Text(
-              'Pemecahan Masalah Koneksi',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontFamily: 'Public Sans',
-                fontWeight: FontWeight.w700,
-                height: 1.5,
+          GestureDetector(
+            onTap: () => _showTroubleshootDialog(context),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 32, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppColors.teal,
+                borderRadius: BorderRadius.circular(9999),
+              ),
+              child: const Text(
+                'Pemecahan Masalah Koneksi',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontFamily: 'Public Sans',
+                  fontWeight: FontWeight.w700,
+                  height: 1.5,
+                ),
               ),
             ),
           ),
@@ -740,27 +852,46 @@ class ScienceBannerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<SmartGloveProvider>(context);
+    
     return Container(
       width: double.infinity,
       height: 256,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(48),
-        color: const Color(0xFF1a3a4a),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFF1a3a4a),
+            const Color(0xFF0d2a38),
+          ],
+        ),
       ),
       child: Stack(
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(48),
-            child: Image.network(
-              'https://placehold.co/342x256/0d2a38/0d2a38',
-              width: double.infinity,
-              height: 256,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(48),
-                  color: const Color(0xFF0d2a38),
-                ),
+          // Decorative elements (no hardcoded image URL)
+          Positioned(
+            right: -50,
+            top: -50,
+            child: Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                color: AppColors.teal.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Positioned(
+            left: -30,
+            bottom: -30,
+            child: Container(
+              width: 150,
+              height: 150,
+              decoration: BoxDecoration(
+                color: AppColors.lightBlue.withOpacity(0.05),
+                shape: BoxShape.circle,
               ),
             ),
           ),
@@ -790,7 +921,9 @@ class ScienceBannerCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Protokol latensi submilidetik untuk\npenerjemahan waktu nyata.',
+                  provider.isEsp32Connected
+                      ? 'Latensi ${provider.latency}ms untuk penerjemahan waktu nyata.\nKoneksi aman dengan firmware ${provider.firmwareVersion}'
+                      : 'Protokol latensi submilidetik untuk\npenerjemahan waktu nyata.',
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.7),
                     fontSize: 14,
